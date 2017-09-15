@@ -1,4 +1,5 @@
 require 'erb'
+require 'pry'
 
 class Greeter
   # Basic Rack
@@ -8,13 +9,20 @@ class Greeter
   #    Rack::Response.new(render('index.html.erb'))
   #  end
   #
-  def call(env)
-    request = Rack::Request.new(env)
-    case request.path
+  def self.call(env)
+    new(env).response.finish
+  end
+
+  def initialize(env)
+    @request = Rack::Request.new(env)
+  end
+
+  def response
+    case @request.path
     when '/'
-      response 'index.html.erb'
+      render_response 'index.html.erb'
     when '/jobs'
-      response 'jobs.html.erb'
+      render_response 'jobs.html.erb'
     else
       Rack::Response.new 'Not found'
     end
@@ -25,10 +33,9 @@ class Greeter
     ERB.new(File.read(template_path)).result(binding)
   end
 
-  def response(template)
+  def render_response(template)
     template_path = File.expand_path("../views/#{template}", __FILE__)
     erb = ERB.new(File.read(template_path)).result(binding)
     Rack::Response.new erb
   end
 end
-
